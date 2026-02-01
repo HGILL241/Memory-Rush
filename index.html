@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Memory Match Rush</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      text-align: center;
+      padding-top: 30px;
+    }
+    h1 {
+      margin-bottom: 5px;
+    }
+    #gameBoard {
+      display: grid;
+      grid-template-columns: repeat(4, 100px);
+      grid-gap: 15px;
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .card {
+      width: 100px;
+      height: 100px;
+      font-size: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 2px solid #ddd;
+      transition: 0.2s;
+    }
+    .card.flipped {
+      background: #ffdd99;
+    }
+    #timer {
+      font-size: 26px;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    #playerName {
+      padding: 10px;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    #startButton {
+      padding: 12px 25px;
+      font-size: 20px;
+      background: green;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Memory Match Rush 🧠⚡</h1>
+<p>Match all 8 pairs as fast as possible!</p>
+
+<input id="playerName" placeholder="Enter your name">
+<br>
+<button id="startButton" onclick="startGame()">Start Game</button>
+
+<div id="timer"></div>
+<div id="gameBoard"></div>
+
+<script>
+  const emojis = ["🍎","😺","⭐","🔥","🎈","⚽","🐶","🚗"];
+  let cards = [];
+  let flipped = [];
+  let matched = 0;
+  let startTime;
+  let timerInterval;
+
+  // ScoreLeader board ID (replace this after you create your board)
+  const BOARD_ID = "https://scoreleader.com/u/62Q9GZ8?admin=7d852150eabf7f0080222e2a0063f19f";
+
+  function startGame() {
+    const name = document.getElementById("playerName").value.trim();
+    if (name === "") {
+      alert("Enter your name first.");
+      return;
+    }
+
+    document.getElementById("gameBoard").innerHTML = "";
+    matched = 0;
+    flipped = [];
+
+    // Duplicate emojis to make pairs
+    cards = [...emojis, ...emojis];
+
+    // Shuffle
+    cards.sort(() => Math.random() - 0.5);
+
+    // Build board
+    cards.forEach((emoji, index) => {
+      const card = document.createElement("div");
+      card.classList.add("card");
+      card.dataset.index = index;
+      card.dataset.emoji = emoji;
+      card.innerHTML = ""; 
+      card.onclick = () => flipCard(card);
+      document.getElementById("gameBoard").appendChild(card);
+    });
+
+    // Start timer
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 100);
+  }
+
+  function updateTimer() {
+    const now = Date.now();
+    const seconds = ((now - startTime) / 1000).toFixed(1);
+    document.getElementById("timer").innerText = "Time: " + seconds + "s";
+  }
+
+  function flipCard(card) {
+    if (card.classList.contains("flipped")) return;
+    if (flipped.length === 2) return;
+
+    card.classList.add("flipped");
+    card.innerHTML = card.dataset.emoji;
+    flipped.push(card);
+
+    if (flipped.length === 2) {
+      setTimeout(checkMatch, 600);
+    }
+  }
+
+  function checkMatch() {
+    const [c1, c2] = flipped;
+
+    if (c1.dataset.emoji === c2.dataset.emoji) {
+      matched++;
+      c1.style.background = "#90EE90";
+      c2.style.background = "#90EE90";
+      c1.onclick = null;
+      c2.onclick = null;
+
+      if (matched === 8) finishGame();
+    } else {
+      c1.classList.remove("flipped");
+      c2.classList.remove("flipped");
+      c1.innerHTML = "";
+      c2.innerHTML = "";
+    }
+
+    flipped = [];
+  }
+
+  function finishGame() {
+    clearInterval(timerInterval);
+    const finalTime = ((Date.now() - startTime) / 1000).toFixed(1);
+
+    alert("You finished in " + finalTime + " seconds!");
+
+    // Submit score to ScoreLeader
+    const name = document.getElementById("playerName").value;
+
+    fetch("https://scoreleader.com/api/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        board: BOARD_ID,
+        name: name,
+        score: Number(finalTime)
+      })
+    });
+
+  }
+</script>
+
+</body>
+</html>
