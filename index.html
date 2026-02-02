@@ -55,6 +55,9 @@
       cursor: pointer;
       margin-top: 10px;
     }
+    #leaderboard {
+      margin-top: 40px;
+    }
   </style>
 </head>
 
@@ -70,6 +73,18 @@
 <div id="timer"></div>
 <div id="gameBoard"></div>
 
+<!-- ✅ EMBEDDED LEADERBOARD -->
+<div id="leaderboard">
+  <h2>🏆 Leaderboard</h2>
+  <iframe 
+    src="https://scoreleader.com/u/62Q9GZ8"
+    width="900"
+    height="800"
+    frameborder="0"
+    style="max-width:100%; border-radius:12px;">
+  </iframe>
+</div>
+
 <script>
   const emojis = ["🍎","😺","⭐","🔥","🎈","⚽","🐶","🚗"];
   let cards = [];
@@ -77,9 +92,6 @@
   let matched = 0;
   let startTime;
   let timerInterval;
-
-  // ScoreLeader board ID (replace this after you create your board)
-  const BOARD_ID = "<iframe src="https://scoreleader.com/u/62Q9GZ8" width="900" height="800" frameborder="0" style="max-width:100%"></iframe>";
 
   function startGame() {
     const name = document.getElementById("playerName").value.trim();
@@ -92,24 +104,19 @@
     matched = 0;
     flipped = [];
 
-    // Duplicate emojis to make pairs
     cards = [...emojis, ...emojis];
-
-    // Shuffle
     cards.sort(() => Math.random() - 0.5);
 
-    // Build board
     cards.forEach((emoji, index) => {
       const card = document.createElement("div");
       card.classList.add("card");
       card.dataset.index = index;
       card.dataset.emoji = emoji;
-      card.innerHTML = ""; 
+      card.innerHTML = "";
       card.onclick = () => flipCard(card);
       document.getElementById("gameBoard").appendChild(card);
     });
 
-    // Start timer
     startTime = Date.now();
     timerInterval = setInterval(updateTimer, 100);
   }
@@ -157,26 +164,9 @@
   function finishGame() {
     clearInterval(timerInterval);
     const finalTime = ((Date.now() - startTime) / 1000).toFixed(1);
-
     alert("You finished in " + finalTime + " seconds!");
-
-    // Submit score to ScoreLeader
-    const name = document.getElementById("playerName").value;
-
-    fetch("https://scoreleader.com/api/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        board: BOARD_ID,
-        name: name,
-        score: Number(finalTime)
-      })
-    });
-
   }
 </script>
 
 </body>
-
 </html>
-
